@@ -7,10 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./styles/main.css" />
+    <link rel="stylesheet" href="./styles/main.css?v=20260323d" />
   </head>
   <body>
     <div class="page-shell">
@@ -20,92 +20,97 @@
           <h1>From Paint to Perimeter</h1>
           <p class="hero__subtitle">How the NBA became a three-point league</p>
           <p class="hero__intro">
-            This explorable follows how league offense shifted toward the arc,
-            then lets you compare which teams embraced the change early and
-            which held on to older shot profiles.
+            This explorable tracks how NBA offense moved toward the arc, then
+            lets you compare which teams adopted perimeter-heavy shot profiles
+            early and which resisted the shift.
           </p>
           <p class="hero__instructions">
             Start with the league trend, scrub the season slider, then hover or
-            click a team in the scatterplot to trace its path against the league
-            average.
+            click a team to carry that comparison through the other views.
           </p>
         </div>
         <aside class="hero__guide">
           <p class="guide__label">Start here</p>
           <p class="guide__text">
-            Watch the line chart first. Then use the selected season to see how
-            widely teams were spread between perimeter-heavy and more
-            traditional offenses.
+            Watch the league curve first. The scatterplot then shows how wide
+            the spread was in that season, and the bottom chart turns one
+            franchise into a longer historical comparison.
           </p>
         </aside>
       </header>
 
-      <section class="about-strip">
-        <p>
-          <strong>About this visualization.</strong> Rather than acting like a
-          general NBA dashboard, this project stays focused on one question:
-          how quickly did teams move from paint-oriented offense to a
-          three-point-heavy style, and how uneven was that transition across the
-          league?
-        </p>
-      </section>
+      <section class="intro-grid">
+        <section class="about-strip">
+          <p>
+            <strong>About this visualization.</strong> Rather than acting like a
+            general NBA dashboard, this project stays focused on one question:
+            how quickly did teams move from paint-oriented offense to a
+            three-point-heavy style, and how uneven was that transition across
+            the league?
+          </p>
+        </section>
 
-      <section class="control-panel" aria-label="Visualization controls">
-        <div class="control-panel__row control-panel__row--primary">
-          <div class="control-group control-group--season">
-            <span class="control-label">Season</span>
-            <div class="season-control">
-              <button id="play-button" class="control-button" type="button">
-                Play
-              </button>
-              <input
-                id="season-slider"
-                class="season-slider"
-                type="range"
-                min="0"
-                max="0"
-                step="1"
-                value="0"
-                aria-label="Selected season"
-              />
-              <span id="season-label" class="season-label">Loading...</span>
+        <section class="control-panel" aria-label="Visualization controls">
+          <div class="control-panel__row control-panel__row--primary">
+            <div class="control-group control-group--season">
+              <span class="control-label">Season</span>
+              <div class="season-control">
+                <button id="play-button" class="control-button" type="button">
+                  Play
+                </button>
+                <input
+                  id="season-slider"
+                  class="season-slider"
+                  type="range"
+                  min="0"
+                  max="0"
+                  step="1"
+                  value="0"
+                  aria-label="Selected season"
+                />
+                <span id="season-label" class="season-label">Loading...</span>
+              </div>
+            </div>
+
+            <div class="control-group control-group--metric">
+              <span class="control-label">Trend metric</span>
+              <div id="metric-toggle" class="metric-toggle"></div>
+              <p class="control-helper">
+                Applies to the two line charts. The scatterplot keeps a fixed
+                comparison frame so season-to-season reading stays stable.
+              </p>
             </div>
           </div>
 
-          <div class="control-group control-group--metric">
-            <span class="control-label">Metric</span>
-            <div id="metric-toggle" class="metric-toggle"></div>
+          <div class="control-panel__row control-panel__row--secondary">
+            <label class="control-group control-group--select">
+              <span class="control-label">Team focus</span>
+              <select id="team-select" class="team-select" aria-label="Choose a team">
+                <option value="">None selected</option>
+              </select>
+            </label>
+
+            <label class="control-group control-group--switch">
+              <span class="control-label">Milestones</span>
+              <span class="switch">
+                <input
+                  id="annotation-toggle"
+                  type="checkbox"
+                  checked
+                  aria-label="Toggle annotations"
+                />
+                <span class="switch__track"></span>
+              </span>
+            </label>
+
+            <div class="control-group control-group--reset">
+              <span class="control-label">State</span>
+              <button id="reset-button" class="control-button control-button--ghost" type="button">
+                Reset view
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div class="control-panel__row control-panel__row--secondary">
-          <label class="control-group control-group--select">
-            <span class="control-label">Team focus</span>
-            <select id="team-select" class="team-select" aria-label="Choose a team">
-              <option value="">None selected</option>
-            </select>
-          </label>
-
-          <label class="control-group control-group--switch">
-            <span class="control-label">Milestones</span>
-            <span class="switch">
-              <input
-                id="annotation-toggle"
-                type="checkbox"
-                checked
-                aria-label="Toggle annotations"
-              />
-              <span class="switch__track"></span>
-            </span>
-          </label>
-
-          <div class="control-group control-group--reset">
-            <span class="control-label">State</span>
-            <button id="reset-button" class="control-button control-button--ghost" type="button">
-              Reset view
-            </button>
-          </div>
-        </div>
+        </section>
       </section>
 
       <main class="dashboard">
@@ -119,8 +124,16 @@
               Loading league trend...
             </p>
           </div>
-          <div id="timeline-chart" class="chart"></div>
-          <div id="annotation-note" class="annotation-note"></div>
+          <div
+            id="timeline-chart"
+            class="chart"
+            tabindex="0"
+            aria-label="League timeline. Use arrow keys to move season selection."
+          ></div>
+          <div class="timeline-notes">
+            <div id="range-note" class="range-note"></div>
+            <div id="annotation-note" class="annotation-note"></div>
+          </div>
         </section>
 
         <div class="dashboard__grid">
@@ -136,8 +149,10 @@
             </div>
             <div id="scatter-chart" class="chart"></div>
             <p class="chart-note">
-              Each point is a team. Horizontal position shows shot profile, vertical
-              position shows scoring, and size reflects win percentage.
+              The lower-right legend explains size and conference color. The
+              two callouts mark the teams closest to the lower-left and
+              upper-right corners in the selected season, while the fixed axes
+              keep cross-season comparisons visually stable.
             </p>
           </section>
 
@@ -153,8 +168,9 @@
             </div>
             <div id="detail-chart" class="chart"></div>
             <p class="chart-note">
-              Hover previews a team; clicking pins it so you can keep scrubbing
-              through seasons without losing the comparison.
+              Hover previews a team, clicking pins it, and an era drag on the
+              timeline narrows the visual emphasis here without adding another
+              chart.
             </p>
           </section>
         </div>
@@ -184,6 +200,6 @@
     <div id="tooltip" class="tooltip" role="dialog" aria-hidden="true"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/main.js?v=20260323d"></script>
   </body>
 </html>

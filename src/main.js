@@ -14,6 +14,7 @@ async function init() {
   const store = createStore({
     selectedSeason: data.latestSeason,
     selectedMetric: DEFAULT_METRIC,
+    selectedRange: null,
     hoveredTeamId: null,
     selectedTeamId: null,
     isPlaying: false,
@@ -38,6 +39,7 @@ async function init() {
     container: document.getElementById("timeline-chart"),
     summaryEl: document.getElementById("timeline-summary"),
     noteEl: document.getElementById("annotation-note"),
+    rangeEl: document.getElementById("range-note"),
     store,
     data,
     tooltip,

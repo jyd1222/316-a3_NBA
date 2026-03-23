@@ -42,3 +42,26 @@ export function getTeamRowForSeason(data, teamId, season) {
   const rows = data.teamsBySeason.get(season) ?? [];
   return rows.find((row) => row.team_id === teamId) ?? null;
 }
+
+export function normalizeSeasonRange(start, end) {
+  return {
+    start: Math.min(start, end),
+    end: Math.max(start, end),
+  };
+}
+
+export function isSeasonInRange(season, range) {
+  if (!range) {
+    return true;
+  }
+
+  return season >= range.start && season <= range.end;
+}
+
+export function buildSeasonSeriesWithGaps(allSeasons, rowBySeason) {
+  return allSeasons.map((season) => rowBySeason.get(season) ?? { season, isGap: true });
+}
+
+export function formatFallbackSeasonLabel(season) {
+  return `${season}-${String((season + 1) % 100).padStart(2, "0")}`;
+}

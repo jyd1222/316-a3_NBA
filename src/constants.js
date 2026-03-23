@@ -4,6 +4,7 @@ export const METRICS = {
   avg_three_point_rate: {
     key: "avg_three_point_rate",
     label: "3PA share",
+    axisLabel: "3PA share",
     longLabel: "Share of shot attempts from three",
     tooltipLabel: "3-point rate",
     shortNarrative: "shot mix from beyond the arc",
@@ -12,6 +13,7 @@ export const METRICS = {
   avg_fg3a: {
     key: "avg_fg3a",
     label: "3PA / game",
+    axisLabel: "3PA per game",
     longLabel: "Three-point attempts per team game",
     tooltipLabel: "3PA per game",
     shortNarrative: "three-point volume",
@@ -20,6 +22,7 @@ export const METRICS = {
   avg_points: {
     key: "avg_points",
     label: "Points / game",
+    axisLabel: "Points per game",
     longLabel: "Points per team game",
     tooltipLabel: "Points per game",
     shortNarrative: "scoring output",
@@ -28,6 +31,7 @@ export const METRICS = {
   avg_assists: {
     key: "avg_assists",
     label: "Assists / game",
+    axisLabel: "Assists per game",
     longLabel: "Assists per team game",
     tooltipLabel: "Assists per game",
     shortNarrative: "ball movement",
@@ -49,9 +53,9 @@ export const SCATTER_METRICS = {
 };
 
 export const CHART_HEIGHTS = {
-  timeline: 360,
-  scatter: 430,
-  detail: 430,
+  timeline: 304,
+  scatter: 304,
+  detail: 244,
 };
 
 export const TRANSITION_MS = 700;

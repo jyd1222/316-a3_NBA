@@ -8,30 +8,47 @@ import {
 } from "../utils/format.js";
 import {
   buildPointSegments,
+  buildSeasonSeriesWithGaps,
+  clamp,
+  formatFallbackSeasonLabel,
   getActiveTeamId,
   getTeamRowForSeason,
+  normalizeSeasonRange,
   observeResize,
 } from "../utils/helpers.js";
 import { createMetricScale, createSeasonScale } from "../utils/scales.js";
 import { renderTimelineAnnotations } from "./annotations.js";
 
 export class TimelineView {
-  constructor({ container, summaryEl, noteEl, store, data, tooltip }) {
+  constructor({ container, summaryEl, noteEl, rangeEl, store, data, tooltip }) {
     this.container = container;
     this.summaryEl = summaryEl;
     this.noteEl = noteEl;
+    this.rangeEl = rangeEl;
     this.store = store;
     this.data = data;
     this.tooltip = tooltip;
+    this.dragRange = null;
+
+    this.handleKeydown = this.handleKeydown.bind(this);
+    this.handleRangeNoteClick = this.handleRangeNoteClick.bind(this);
+    this.handleGlobalMouseup = this.handleGlobalMouseup.bind(this);
 
     this.svg = d3.select(container).append("svg");
     this.gridLayer = this.svg.append("g").attr("class", "grid");
+    this.scopeLayer = this.svg.append("g");
+    this.gapLayer = this.svg.append("g");
+    this.rangeLayer = this.svg.append("g");
     this.axisX = this.svg.append("g").attr("class", "axis");
     this.axisY = this.svg.append("g").attr("class", "axis");
     this.annotationLayer = this.svg.append("g");
     this.guideLayer = this.svg.append("g");
     this.lineLayer = this.svg.append("g");
     this.hitLayer = this.svg.append("g");
+
+    this.container.addEventListener("keydown", this.handleKeydown);
+    this.rangeEl.addEventListener("click", this.handleRangeNoteClick);
+    window.addEventListener?.("mouseup", this.handleGlobalMouseup);
 
     this.unsubscribe = this.store.subscribe((state) => this.render(state));
     this.resizeObserver = observeResize(this.container, () =>
@@ -42,22 +59,30 @@ export class TimelineView {
   render(state) {
     const width = Math.max(this.container.clientWidth, 320);
     const height = CHART_HEIGHTS.timeline;
-    const margin = { top: 26, right: 28, bottom: 58, left: 72 };
+    const margin = { top: 22, right: 22, bottom: 52, left: 70 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
+    const seasonDomain = this.data.seasons;
     const metricKey = state.selectedMetric;
     const metricMeta = METRICS[metricKey];
     const activeTeamId = getActiveTeamId(state);
     const teamSeries = activeTeamId
       ? this.data.teamSeriesById.get(activeTeamId) ?? []
       : [];
+    const teamSeriesBySeason = new Map(teamSeries.map((row) => [row.season, row]));
+    const leagueSeries = this.data.league;
+    const teamSeriesWithGaps = buildSeasonSeriesWithGaps(
+      seasonDomain,
+      teamSeriesBySeason
+    );
+    const activeRange = this.getDisplayedRange(state);
 
     const domainValues = [
       ...this.data.league.map((row) => row[metricKey]),
       ...teamSeries.map((row) => row[metricKey]),
     ];
 
-    const xScale = createSeasonScale(this.data.seasons, [
+    const xScale = createSeasonScale(seasonDomain, [
       margin.left,
       width - margin.right,
     ]);
@@ -66,10 +91,29 @@ export class TimelineView {
       [height - margin.bottom, margin.top],
       { isRate: metricMeta.isRate }
     );
+    const allSegments = buildPointSegments(
+      xScale,
+      seasonDomain,
+      margin.left,
+      width - margin.right
+    );
+    const selectableSegments = buildPointSegments(
+      xScale,
+      seasonDomain,
+      margin.left,
+      width - margin.right
+    );
+    const tickStep = width >= 1160 ? 5 : width >= 920 ? 6 : 8;
+    const timelineTicks = seasonDomain.filter(
+      (_, index) =>
+        index === 0 ||
+        index === seasonDomain.length - 1 ||
+        index % tickStep === 0
+    );
 
     const line = d3
       .line()
-      .defined((row) => row[metricKey] != null)
+      .defined((row) => row[metricKey] != null && !row.isGap)
       .x((row) => xScale(row.season))
       .y((row) => yScale(row[metricKey]));
 
@@ -85,17 +129,29 @@ export class TimelineView {
           .tickFormat("")
       );
 
+    this.renderScopeMarkers({
+      state,
+      width,
+      height,
+      margin,
+      innerHeight,
+      xScale,
+      allSegments,
+    });
+
+    this.renderRangeBand({
+      activeRange,
+      margin,
+      innerHeight,
+      allSegments,
+    });
+
     this.axisX
       .attr("transform", `translate(0,${height - margin.bottom})`)
       .call(
         d3
           .axisBottom(xScale)
-          .tickValues(
-            this.data.seasons.filter(
-              (season, index) =>
-                index === 0 || index === this.data.seasons.length - 1 || season % 4 === 1
-            )
-          )
+          .tickValues(timelineTicks)
           .tickFormat((season) => {
             const row = this.data.leagueBySeason.get(season);
             return row ? row.season_label.slice(0, 4) : season;
@@ -112,11 +168,13 @@ export class TimelineView {
       );
 
     this.axisY
-      .selectAll(".axis-title")
-      .data([metricMeta.longLabel])
+      .selectAll(".axis-title--timeline-y")
+      .data([metricMeta.axisLabel ?? metricMeta.longLabel])
       .join("text")
-      .attr("class", "axis-title")
-      .attr("transform", `translate(18, ${margin.top + innerHeight / 2}) rotate(-90)`)
+      .attr("class", "axis-title axis-title--timeline-y")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -(margin.top + innerHeight / 2))
+      .attr("y", -58)
       .attr("text-anchor", "middle")
       .text((value) => value);
 
@@ -132,7 +190,7 @@ export class TimelineView {
 
     this.lineLayer
       .selectAll(".timeline-line")
-      .data([this.data.league])
+      .data([leagueSeries])
       .join("path")
       .attr("class", "timeline-line")
       .transition()
@@ -141,7 +199,7 @@ export class TimelineView {
 
     this.lineLayer
       .selectAll(".timeline-line--team")
-      .data(teamSeries.length ? [teamSeries] : [])
+      .data(teamSeries.length ? [teamSeriesWithGaps] : [])
       .join(
         (enter) =>
           enter
@@ -151,6 +209,7 @@ export class TimelineView {
         (update) => update,
         (exit) => exit.transition().duration(TRANSITION_MS / 2).attr("opacity", 0).remove()
       )
+      .classed("is-selected", Boolean(state.selectedTeamId))
       .classed("is-preview", !state.selectedTeamId && Boolean(state.hoveredTeamId))
       .transition()
       .duration(TRANSITION_MS)
@@ -199,6 +258,8 @@ export class TimelineView {
         (update) => update,
         (exit) => exit.transition().duration(TRANSITION_MS / 2).attr("r", 0).remove()
       )
+      .classed("is-selected", Boolean(state.selectedTeamId))
+      .classed("is-preview", !state.selectedTeamId && Boolean(state.hoveredTeamId))
       .transition()
       .duration(TRANSITION_MS)
       .attr("cx", xScale(currentTeamRow?.season))
@@ -213,26 +274,27 @@ export class TimelineView {
       leagueBySeason: this.data.leagueBySeason,
       metricKey,
       width,
+      height,
+      margin,
       show: state.showAnnotations,
     });
-
-    const hitSegments = buildPointSegments(
-      xScale,
-      this.data.seasons,
-      margin.left,
-      width - margin.right
-    );
+    this.annotationLayer.raise();
 
     this.hitLayer
       .selectAll(".timeline-hit-area")
-      .data(hitSegments, (segment) => segment.value)
+      .data(selectableSegments, (segment) => segment.value)
       .join("rect")
       .attr("class", "timeline-hit-area")
       .attr("x", (segment) => segment.x0)
       .attr("y", margin.top)
       .attr("width", (segment) => segment.width)
       .attr("height", innerHeight)
-      .on("mouseenter mousemove", (event, segment) => {
+      .on("mouseenter", (event, segment) => {
+        if (this.dragRange && event.buttons === 1) {
+          this.updateRangeDrag(segment.value);
+          return;
+        }
+
         const leagueRow = this.data.leagueBySeason.get(segment.value);
         const teamRow = activeTeamId
           ? getTeamRowForSeason(this.data, activeTeamId, segment.value)
@@ -242,11 +304,35 @@ export class TimelineView {
           event
         );
       })
-      .on("mousemove", (event) => this.tooltip.move(event))
-      .on("mouseleave", () => this.tooltip.hide())
-      .on("click", (_, segment) => {
+      .on("mousemove", (event, segment) => {
+        if (this.dragRange && event.buttons === 1) {
+          this.updateRangeDrag(segment.value);
+          return;
+        }
+
+        this.tooltip.move(event);
+      })
+      .on("mouseleave", () => {
+        if (!this.dragRange) {
+          this.tooltip.hide();
+        }
+      })
+      .on("mousedown", (event, segment) => {
+        event.preventDefault();
+        this.tooltip.hide();
+        this.container.focus?.();
+        this.startRangeDrag(segment.value);
+      })
+      .on("mouseup", (_, segment) => {
+        if (this.dragRange) {
+          this.commitRange(segment.value);
+        }
+      })
+      .on("dblclick", (event) => {
+        event.preventDefault();
+        this.dragRange = null;
         this.store.setState({
-          selectedSeason: segment.value,
+          selectedRange: null,
           isPlaying: false,
         });
       });
@@ -257,26 +343,92 @@ export class TimelineView {
       selectedSeasonRow,
       currentTeamRow,
       activeTeamId,
+      activeRange,
     });
+    this.updateRangeNote(state, activeRange);
     this.updateAnnotationNote(state, selectedSeasonRow);
   }
 
-  updateSummary({ state, metricKey, selectedSeasonRow, currentTeamRow, activeTeamId }) {
+  renderScopeMarkers({ width, height, margin, xScale }) {
+    const scopeSeason = this.data.seasons[0];
+    const scopeX = xScale(scopeSeason);
+    const scopeLabel = "Reliable tracking begins";
+
+    this.scopeLayer
+      .selectAll(".timeline-scope-line")
+      .data([scopeSeason])
+      .join("line")
+      .attr("class", "timeline-scope-line")
+      .attr("x1", scopeX)
+      .attr("x2", scopeX)
+      .attr("y1", margin.top)
+      .attr("y2", height - margin.bottom);
+
+    this.scopeLayer
+      .selectAll(".timeline-scope-label")
+      .data([scopeSeason])
+      .join("text")
+      .attr("class", "timeline-scope-label")
+      .attr("x", Math.min(scopeX + 8, width - margin.right - 160))
+      .attr("y", margin.top + 12)
+      .text(scopeLabel);
+    this.gapLayer.selectAll("*").remove();
+  }
+
+  renderRangeBand({ activeRange, margin, innerHeight, allSegments }) {
+    const rangeData = activeRange ? [this.getRangeBand(activeRange, allSegments)] : [];
+
+    this.rangeLayer
+      .selectAll(".timeline-range-band")
+      .data(rangeData, () => "range")
+      .join("rect")
+      .attr("class", "timeline-range-band")
+      .attr("rx", 12)
+      .attr("x", (band) => band.x)
+      .attr("y", margin.top)
+      .attr("width", (band) => band.width)
+      .attr("height", innerHeight);
+
+    this.rangeLayer
+      .selectAll(".timeline-range-outline")
+      .data(rangeData, () => "outline")
+      .join("rect")
+      .attr("class", "timeline-range-outline")
+      .attr("rx", 12)
+      .attr("x", (band) => band.x)
+      .attr("y", margin.top)
+      .attr("width", (band) => band.width)
+      .attr("height", innerHeight);
+  }
+
+  updateSummary({
+    state,
+    metricKey,
+    selectedSeasonRow,
+    currentTeamRow,
+    activeTeamId,
+    activeRange,
+  }) {
     const firstSeasonRow = this.data.league[0];
     const narrativeMetric = METRICS[metricKey].shortNarrative;
 
-    if (currentTeamRow && activeTeamId) {
-      const intro = state.selectedTeamId
-        ? currentTeamRow.team_name
-        : `Previewing ${currentTeamRow.team_name}`;
-      this.summaryEl.textContent = `${intro}: ${formatMetricValue(
+    if (currentTeamRow && state.selectedTeamId) {
+      const chip = state.selectedTeamId
+        ? '<span class="state-chip state-chip--selected">Pinned team</span>'
+        : '<span class="state-chip state-chip--preview">Preview</span>';
+      this.summaryEl.innerHTML = `${chip}${currentTeamRow.team_name}: ${formatMetricValue(
         metricKey,
         currentTeamRow[metricKey]
       )} in ${seasonLabelForRow(currentTeamRow)}, ${formatMetricDelta(
         metricKey,
         currentTeamRow[metricKey],
         selectedSeasonRow[metricKey]
-      )}.`;
+      )}${activeRange ? `, while the detail view emphasizes ${this.formatRange(activeRange)}.` : "."}`;
+      return;
+    }
+
+    if (currentTeamRow && state.hoveredTeamId) {
+      this.summaryEl.innerHTML = `<span class="state-chip state-chip--preview">Preview</span>${currentTeamRow.team_abbr} is overlaid on the league trend for ${selectedSeasonRow.season_label}.`;
       return;
     }
 
@@ -299,6 +451,22 @@ export class TimelineView {
     )} in ${firstSeasonRow.season_label}.`;
   }
 
+  updateRangeNote(state, activeRange) {
+    if (!activeRange) {
+      this.rangeEl.innerHTML =
+        "<strong>Era focus.</strong> The solid guide marks the selected season. Drag across the trend to emphasize an era in the team history view, and use arrow keys here to step through seasons.";
+      return;
+    }
+
+    const prefix = this.dragRange ? "Dragging era focus" : "Era focus";
+    const suffix = state.selectedRange
+      ? ' <button type="button" class="text-button" data-clear-range>Clear era focus</button>'
+      : "";
+    this.rangeEl.innerHTML = `<strong>${prefix}: ${this.formatRange(
+      activeRange
+    )}</strong>The detail view now emphasizes this span without changing the scatterplot comparison frame.${suffix}`;
+  }
+
   updateAnnotationNote(state, selectedSeasonRow) {
     if (!state.showAnnotations) {
       this.noteEl.innerHTML =
@@ -312,7 +480,111 @@ export class TimelineView {
       return;
     }
 
-    this.noteEl.innerHTML = `<strong>${selectedSeasonRow.season_label}</strong>This season is not one of the highlighted milestones, so use it as a comparison anchor while exploring how individual teams diverged from the league norm.`;
+    this.noteEl.innerHTML = `<strong>${selectedSeasonRow.season_label}</strong>This season is not one of the highlighted milestones, so use it as a neutral comparison anchor while you inspect team-level spread below.`;
+  }
+
+  handleKeydown(event) {
+    const { selectedSeason, selectedRange } = this.store.getState();
+    const currentIndex = this.data.seasonIndex.get(selectedSeason);
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      const delta = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = clamp(currentIndex + delta, 0, this.data.seasons.length - 1);
+      this.store.setState({
+        selectedSeason: this.data.seasons[nextIndex],
+        isPlaying: false,
+      });
+      return;
+    }
+
+    if (event.key === "Escape" && selectedRange) {
+      event.preventDefault();
+      this.store.setState({
+        selectedRange: null,
+      });
+    }
+  }
+
+  handleRangeNoteClick(event) {
+    if (!event.target.closest("[data-clear-range]")) {
+      return;
+    }
+
+    this.store.setState({
+      selectedRange: null,
+    });
+    this.container.focus?.();
+  }
+
+  handleGlobalMouseup() {
+    if (!this.dragRange) {
+      return;
+    }
+
+    this.commitRange(this.dragRange.end);
+  }
+
+  startRangeDrag(season) {
+    this.dragRange = { start: season, end: season };
+    this.store.setState({
+      selectedSeason: season,
+      isPlaying: false,
+    });
+  }
+
+  updateRangeDrag(season) {
+    if (!this.dragRange) {
+      return;
+    }
+
+    this.dragRange.end = season;
+    this.render(this.store.getState());
+  }
+
+  commitRange(endSeason) {
+    if (!this.dragRange) {
+      return;
+    }
+
+    const { start } = this.dragRange;
+    this.dragRange.end = endSeason;
+    const committedRange =
+      start === endSeason ? null : normalizeSeasonRange(start, endSeason);
+
+    this.dragRange = null;
+    this.store.setState({
+      selectedSeason: endSeason,
+      selectedRange: committedRange,
+      isPlaying: false,
+    });
+  }
+
+  getDisplayedRange(state) {
+    if (this.dragRange) {
+      return normalizeSeasonRange(this.dragRange.start, this.dragRange.end);
+    }
+
+    return state.selectedRange;
+  }
+
+  getRangeBand(range, allSegments) {
+    const startSegment = allSegments.find((segment) => segment.value === range.start);
+    const endSegment = allSegments.find((segment) => segment.value === range.end);
+    return {
+      x: startSegment.x0,
+      width: endSegment.x1 - startSegment.x0,
+    };
+  }
+
+  formatRange(range) {
+    const startLabel =
+      this.data.leagueBySeason.get(range.start)?.season_label ??
+      formatFallbackSeasonLabel(range.start);
+    const endLabel =
+      this.data.leagueBySeason.get(range.end)?.season_label ??
+      formatFallbackSeasonLabel(range.end);
+    return `${startLabel} to ${endLabel}`;
   }
 }
 

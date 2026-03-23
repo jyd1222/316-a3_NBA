@@ -10,20 +10,31 @@ export function renderTimelineAnnotations({
   leagueBySeason,
   metricKey,
   width,
+  height,
+  margin,
   show,
 }) {
-  const labelMode = width >= 960;
-  const visibleAnnotations = show ? annotations : [];
+  const positionedAnnotations = buildAnnotationLayout({
+    annotations,
+    xScale,
+    yScale,
+    leagueBySeason,
+    metricKey,
+    width,
+    height,
+    margin,
+    show,
+  });
 
   const join = layer
     .selectAll(".timeline-annotation")
-    .data(visibleAnnotations, (annotation) => annotation.season);
+    .data(positionedAnnotations, (annotation) => annotation.season);
 
   const enter = join
     .enter()
     .append("g")
     .attr("class", "timeline-annotation")
-    .style("opacity", 0);
+    .style("opacity", show ? 1 : 0);
 
   enter.append("line").attr("class", "timeline-annotation__stem");
   enter.append("circle").attr("class", "timeline-annotation__dot").attr("r", 4.5);
@@ -37,47 +48,33 @@ export function renderTimelineAnnotations({
 
   merged.each(function updateAnnotation(annotation) {
     const group = d3.select(this);
-    const leagueRow = leagueBySeason.get(annotation.season);
-    const x = xScale(annotation.season);
-    const y = yScale(leagueRow[metricKey]);
-    const direction = annotation.placement === "bottom" ? 1 : -1;
-    const stemLength = labelMode ? 42 : 22;
-    const labelText = labelMode ? annotation.title : "";
-
-    group.attr("transform", `translate(${x}, ${y})`);
+    const labelVisible = Boolean(annotation.labelText);
 
     group
       .select(".timeline-annotation__stem")
-      .attr("x1", 0)
-      .attr("x2", 0)
-      .attr("y1", 0)
-      .attr("y2", direction * stemLength);
+      .attr("x1", annotation.x)
+      .attr("x2", annotation.x)
+      .attr("y1", annotation.y)
+      .attr("y2", annotation.stemEndY);
+
+    group
+      .select(".timeline-annotation__dot")
+      .attr("cx", annotation.x)
+      .attr("cy", annotation.y);
 
     const text = group
       .select(".timeline-annotation__label")
-      .attr("display", labelMode ? null : "none")
-      .attr("y", direction * (stemLength + (direction < 0 ? -12 : 18)))
-      .text(labelText);
+      .attr("display", labelVisible ? null : "none")
+      .attr("x", annotation.labelX)
+      .attr("y", annotation.labelY)
+      .attr("text-anchor", annotation.textAnchor)
+      .text(annotation.labelText ?? "");
 
     const rect = group.select(".timeline-annotation__pill");
-    if (!labelMode) {
-      rect.attr("display", "none");
-      return;
-    }
-
-    const bbox = text.node().getBBox();
-    rect
-      .attr("display", null)
-      .attr("x", bbox.x - 10)
-      .attr("y", bbox.y - 5)
-      .attr("width", bbox.width + 20)
-      .attr("height", bbox.height + 10);
+    rect.attr("display", "none");
   });
 
-  merged
-    .transition()
-    .duration(TRANSITION_MS)
-    .style("opacity", show ? 1 : 0);
+  merged.style("opacity", show ? 1 : 0);
 
   join
     .exit()
@@ -85,4 +82,99 @@ export function renderTimelineAnnotations({
     .duration(TRANSITION_MS / 2)
     .style("opacity", 0)
     .remove();
+}
+
+function buildAnnotationLayout({
+  annotations,
+  xScale,
+  yScale,
+  leagueBySeason,
+  metricKey,
+  width,
+  height,
+  margin,
+  show,
+}) {
+  if (!show) {
+    return [];
+  }
+
+  const topOffsets = [-42, -68, -92];
+  const bottomOffsets = [28, 48];
+  const topBound = margin.top + 18;
+  const bottomBound = height - margin.bottom - 22;
+
+  const rawAvailable = annotations
+    .map((annotation) => {
+      const leagueRow = leagueBySeason.get(annotation.season);
+      if (!leagueRow) {
+        return null;
+      }
+
+      return {
+        ...annotation,
+        x: xScale(annotation.season),
+        y: yScale(leagueRow[metricKey]),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => d3.ascending(a.season, b.season));
+  const available = rawAvailable.filter((annotation) => annotation.season !== 1985);
+
+  let topCount = 0;
+  let bottomCount = 0;
+
+  return available.map((annotation) => {
+    const isBottom = annotation.placement === "bottom";
+    const offset = isBottom
+      ? bottomOffsets[bottomCount++ % bottomOffsets.length]
+      : topOffsets[topCount++ % topOffsets.length];
+
+    return buildPositionedAnnotation({
+      annotation,
+      labelText: annotation.title,
+      offset,
+      topBound,
+      bottomBound,
+      width,
+      margin,
+    });
+  });
+}
+
+function buildPositionedAnnotation({
+  annotation,
+  labelText,
+  offset,
+  topBound,
+  bottomBound,
+  width,
+  margin,
+}) {
+  const labelY = clamp(annotation.y + offset, topBound, bottomBound);
+  const stemEndY = labelText
+    ? labelY + (labelY < annotation.y ? 12 : -12)
+    : labelY;
+  const edgePadding = 16;
+  const isNearLeft = annotation.x < margin.left + 110;
+  const isNearRight = annotation.x > width - margin.right - 110;
+  const textAnchor = isNearLeft ? "start" : isNearRight ? "end" : "middle";
+  const labelX = isNearLeft
+    ? annotation.x + edgePadding
+    : isNearRight
+      ? annotation.x - edgePadding
+      : annotation.x;
+
+  return {
+    ...annotation,
+    labelText,
+    labelX,
+    labelY,
+    stemEndY,
+    textAnchor,
+  };
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }

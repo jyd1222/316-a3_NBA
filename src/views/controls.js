@@ -110,6 +110,7 @@ export function initControls({ store, data, elements }) {
     store.setState({
       selectedSeason: data.latestSeason,
       selectedMetric: DEFAULT_METRIC,
+      selectedRange: null,
       selectedTeamId: null,
       hoveredTeamId: null,
       showAnnotations: true,

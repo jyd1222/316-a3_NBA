@@ -1,10 +1,12 @@
 const d3 = window.d3;
 
+const DATA_VERSION = "20260323d";
+
 export async function loadData() {
   const [leagueRows, teamRows, annotations] = await Promise.all([
-    d3.csv("./data/league_season_summary.csv", parseLeagueRow),
-    d3.csv("./data/team_season_summary.csv", parseTeamRow),
-    d3.json("./data/annotations.json"),
+    d3.csv(`./data/league_season_summary.csv?v=${DATA_VERSION}`, parseLeagueRow),
+    d3.csv(`./data/team_season_summary.csv?v=${DATA_VERSION}`, parseTeamRow),
+    d3.json(`./data/annotations.json?v=${DATA_VERSION}`),
   ]);
 
   const league = leagueRows.sort((a, b) => d3.ascending(a.season, b.season));
@@ -12,7 +14,9 @@ export async function loadData() {
     d3.ascending(a.season, b.season) || d3.ascending(a.team_name, b.team_name)
   );
   const seasons = league.map((row) => row.season);
+  const allSeasons = buildAllSeasons(seasons[0], seasons.at(-1));
   const seasonIndex = new Map(seasons.map((season, index) => [season, index]));
+  const missingSeasons = allSeasons.filter((season) => !seasonIndex.has(season));
 
   const leagueBySeason = new Map(league.map((row) => [row.season, row]));
   const teamsBySeason = d3.group(teams, (row) => row.season);
@@ -44,6 +48,8 @@ export async function loadData() {
     teams,
     annotations,
     seasons,
+    allSeasons,
+    missingSeasons,
     seasonIndex,
     latestSeason: seasons.at(-1),
     leagueBySeason,
@@ -52,6 +58,14 @@ export async function loadData() {
     annotationBySeason,
     teamLookup,
   };
+}
+
+function buildAllSeasons(startSeason, endSeason) {
+  const seasons = [];
+  for (let season = startSeason; season <= endSeason; season += 1) {
+    seasons.push(season);
+  }
+  return seasons;
 }
 
 function parseLeagueRow(row) {

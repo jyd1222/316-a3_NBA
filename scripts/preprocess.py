@@ -413,8 +413,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 1985,
             "title": "Complete tracking begins",
             "text": (
-                "This explorable starts in 1985-86 because that is the first season "
-                "with complete team-level FGA and 3PA coverage in the source database."
+                "This is the first season where leaguewide 3PA share can be compared "
+                "cleanly, because both FGA and 3PA coverage become complete here."
             ),
             "placement": "top",
         },
@@ -422,8 +422,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 1994,
             "title": "Shorter line, sudden bump",
             "text": (
-                "The NBA shortened the three-point line in 1994-95, creating a "
-                "noticeable temporary jump in outside shooting."
+                "The shorter line briefly made perimeter volume easier for almost "
+                "everyone, so part of this spike reflects rule design, not just strategy."
             ),
             "placement": "bottom",
         },
@@ -431,8 +431,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 1997,
             "title": "Arc restored",
             "text": (
-                "The line returned to its original distance in 1997-98, and league "
-                "shooting volume cooled before the next strategic wave."
+                "When the line moved back, some of the jump faded, which helps separate "
+                "a temporary rule effect from the deeper long-run strategic shift."
             ),
             "placement": "top",
         },
@@ -440,8 +440,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 2005,
             "title": "Pace-and-space preview",
             "text": (
-                "Teams like Mike D'Antoni's Suns helped normalize spacing and quick "
-                "decision-making before the three-point boom went mainstream."
+                "Spacing-first offenses showed that faster decisions and more perimeter "
+                "threats could bend a defense before the whole league copied the idea."
             ),
             "placement": "bottom",
         },
@@ -449,8 +449,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 2013,
             "title": "Analytics era accelerates",
             "text": (
-                "By the early 2010s, teams are more aggressively trading long twos "
-                "for threes and shots at the rim."
+                "By this point, teams were more deliberately replacing long twos with "
+                "threes, and the gap between adopters and holdouts was widening."
             ),
             "placement": "top",
         },
@@ -458,8 +458,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 2015,
             "title": "Championship proof of concept",
             "text": (
-                "Golden State's rise helped turn high-volume three-point offense from "
-                "an outlier strategy into a title-winning blueprint."
+                "A title team built around extreme shooting made high-volume three-point "
+                "offense feel repeatable, not experimental."
             ),
             "placement": "bottom",
         },
@@ -467,8 +467,8 @@ def build_annotations(available_seasons: Iterable[int]) -> list[dict]:
             "season": 2018,
             "title": "The volume race",
             "text": (
-                "Late-2010s contenders were often separated by how fast they embraced "
-                "extreme three-point volume, not just by raw scoring."
+                "Contenders were no longer debating whether to shoot more threes, but "
+                "how aggressively they could push volume without losing balance."
             ),
             "placement": "top",
         },
