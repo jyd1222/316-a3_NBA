@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>From Paint to Perimeter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero__copy">
+          <p class="hero__eyebrow">CSC316 interactive visualization</p>
+          <h1>From Paint to Perimeter</h1>
+          <p class="hero__subtitle">How the NBA became a three-point league</p>
+          <p class="hero__intro">
+            This explorable follows how league offense shifted toward the arc,
+            then lets you compare which teams embraced the change early and
+            which held on to older shot profiles.
+          </p>
+          <p class="hero__instructions">
+            Start with the league trend, scrub the season slider, then hover or
+            click a team in the scatterplot to trace its path against the league
+            average.
+          </p>
+        </div>
+        <aside class="hero__guide">
+          <p class="guide__label">Start here</p>
+          <p class="guide__text">
+            Watch the line chart first. Then use the selected season to see how
+            widely teams were spread between perimeter-heavy and more
+            traditional offenses.
+          </p>
+        </aside>
+      </header>
+
+      <section class="about-strip">
+        <p>
+          <strong>About this visualization.</strong> Rather than acting like a
+          general NBA dashboard, this project stays focused on one question:
+          how quickly did teams move from paint-oriented offense to a
+          three-point-heavy style, and how uneven was that transition across the
+          league?
+        </p>
+      </section>
+
+      <section class="control-panel" aria-label="Visualization controls">
+        <div class="control-panel__row control-panel__row--primary">
+          <div class="control-group control-group--season">
+            <span class="control-label">Season</span>
+            <div class="season-control">
+              <button id="play-button" class="control-button" type="button">
+                Play
+              </button>
+              <input
+                id="season-slider"
+                class="season-slider"
+                type="range"
+                min="0"
+                max="0"
+                step="1"
+                value="0"
+                aria-label="Selected season"
+              />
+              <span id="season-label" class="season-label">Loading...</span>
+            </div>
+          </div>
+
+          <div class="control-group control-group--metric">
+            <span class="control-label">Metric</span>
+            <div id="metric-toggle" class="metric-toggle"></div>
+          </div>
+        </div>
+
+        <div class="control-panel__row control-panel__row--secondary">
+          <label class="control-group control-group--select">
+            <span class="control-label">Team focus</span>
+            <select id="team-select" class="team-select" aria-label="Choose a team">
+              <option value="">None selected</option>
+            </select>
+          </label>
+
+          <label class="control-group control-group--switch">
+            <span class="control-label">Milestones</span>
+            <span class="switch">
+              <input
+                id="annotation-toggle"
+                type="checkbox"
+                checked
+                aria-label="Toggle annotations"
+              />
+              <span class="switch__track"></span>
+            </span>
+          </label>
+
+          <div class="control-group control-group--reset">
+            <span class="control-label">State</span>
+            <button id="reset-button" class="control-button control-button--ghost" type="button">
+              Reset view
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <main class="dashboard">
+        <section class="card card--timeline">
+          <div class="card__header">
+            <div>
+              <p class="card__eyebrow">1. League trend</p>
+              <h2>How the offensive baseline moved</h2>
+            </div>
+            <p id="timeline-summary" class="card__summary">
+              Loading league trend...
+            </p>
+          </div>
+          <div id="timeline-chart" class="chart"></div>
+          <div id="annotation-note" class="annotation-note"></div>
+        </section>
+
+        <div class="dashboard__grid">
+          <section class="card card--scatter">
+            <div class="card__header">
+              <div>
+                <p class="card__eyebrow">2. Season comparison</p>
+                <h2>Who adopted the perimeter first?</h2>
+              </div>
+              <p id="scatter-summary" class="card__summary">
+                Loading team comparison...
+              </p>
+            </div>
+            <div id="scatter-chart" class="chart"></div>
+            <p class="chart-note">
+              Each point is a team. Horizontal position shows shot profile, vertical
+              position shows scoring, and size reflects win percentage.
+            </p>
+          </section>
+
+          <section class="card card--detail">
+            <div class="card__header">
+              <div>
+                <p class="card__eyebrow">3. Team detail</p>
+                <h2>Compare one franchise against the league</h2>
+              </div>
+              <p id="detail-summary" class="card__summary">
+                Choose a team to unlock the long-run comparison.
+              </p>
+            </div>
+            <div id="detail-chart" class="chart"></div>
+            <p class="chart-note">
+              Hover previews a team; clicking pins it so you can keep scrubbing
+              through seasons without losing the comparison.
+            </p>
+          </section>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <p>
+          Data source: Kaggle NBA Database by
+          <a href="https://www.kaggle.com/datasets/wyattowalsh/basketball/data"
+            >wyattowalsh</a
+          >. Built with D3.js as a static, GitHub Pages-friendly CSC316
+          assignment project.
+        </p>
+        <p>
+          Design acknowledgements: inspired by explorable sports graphics that
+          balance narrative cueing with open-ended comparison, while keeping the
+          focus on a single question rather than a broad dashboard.
+        </p>
+        <p class="site-footer__fineprint">
+          Scope note: the published database version used here provides complete
+          regular-season 3PA and FGA coverage from 1985-86 onward, and its game
+          table skips the 2012-13 regular season.
+        </p>
+      </footer>
+    </div>
+
+    <div id="tooltip" class="tooltip" role="dialog" aria-hidden="true"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

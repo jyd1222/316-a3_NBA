@@ -1,0 +1,51 @@
+[
+  {
+    "season": 1985,
+    "title": "Complete tracking begins",
+    "text": "This explorable starts in 1985-86 because that is the first season with complete team-level FGA and 3PA coverage in the source database.",
+    "placement": "top",
+    "season_label": "1985-86"
+  },
+  {
+    "season": 1994,
+    "title": "Shorter line, sudden bump",
+    "text": "The NBA shortened the three-point line in 1994-95, creating a noticeable temporary jump in outside shooting.",
+    "placement": "bottom",
+    "season_label": "1994-95"
+  },
+  {
+    "season": 1997,
+    "title": "Arc restored",
+    "text": "The line returned to its original distance in 1997-98, and league shooting volume cooled before the next strategic wave.",
+    "placement": "top",
+    "season_label": "1997-98"
+  },
+  {
+    "season": 2005,
+    "title": "Pace-and-space preview",
+    "text": "Teams like Mike D'Antoni's Suns helped normalize spacing and quick decision-making before the three-point boom went mainstream.",
+    "placement": "bottom",
+    "season_label": "2005-06"
+  },
+  {
+    "season": 2013,
+    "title": "Analytics era accelerates",
+    "text": "By the early 2010s, teams are more aggressively trading long twos for threes and shots at the rim.",
+    "placement": "top",
+    "season_label": "2013-14"
+  },
+  {
+    "season": 2015,
+    "title": "Championship proof of concept",
+    "text": "Golden State's rise helped turn high-volume three-point offense from an outlier strategy into a title-winning blueprint.",
+    "placement": "bottom",
+    "season_label": "2015-16"
+  },
+  {
+    "season": 2018,
+    "title": "The volume race",
+    "text": "Late-2010s contenders were often separated by how fast they embraced extreme three-point volume, not just by raw scoring.",
+    "placement": "top",
+    "season_label": "2018-19"
+  }
+]

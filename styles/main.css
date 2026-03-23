@@ -1,0 +1,723 @@
+:root {
+  --bg: #f4efe7;
+  --bg-deep: #ece2d4;
+  --panel: rgba(255, 249, 240, 0.88);
+  --panel-strong: rgba(255, 250, 244, 0.96);
+  --ink: #1d2431;
+  --muted: #6c716f;
+  --line: #d8cfc0;
+  --line-strong: #b9ad99;
+  --accent: #c85d2d;
+  --highlight: #16706b;
+  --league: #27354b;
+  --annotation: #8a6a2b;
+  --shadow: 0 18px 40px rgba(46, 41, 35, 0.08);
+  --radius-lg: 26px;
+  --radius-md: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Space Grotesk", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(200, 93, 45, 0.09), transparent 32%),
+    radial-gradient(circle at 85% 10%, rgba(22, 112, 107, 0.08), transparent 26%),
+    linear-gradient(180deg, #f8f4ee 0%, var(--bg) 34%, var(--bg-deep) 100%);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 28px 28px;
+  content: "";
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+a {
+  color: var(--highlight);
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+.page-shell {
+  width: min(1280px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 32px 0 56px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 0.95fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.hero__copy,
+.hero__guide,
+.about-strip,
+.control-panel,
+.card,
+.site-footer {
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.hero__copy {
+  padding: 30px 32px;
+}
+
+.hero__eyebrow,
+.card__eyebrow,
+.guide__label,
+.control-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 10px 0 8px;
+  font-family: "Source Serif 4", serif;
+  font-size: clamp(2.7rem, 6vw, 4.9rem);
+  font-weight: 600;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.hero__subtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hero__intro,
+.hero__instructions,
+.guide__text,
+.about-strip p,
+.card__summary,
+.chart-note,
+.site-footer p,
+.annotation-note,
+.tooltip {
+  line-height: 1.58;
+}
+
+.hero__intro,
+.hero__instructions {
+  max-width: 64ch;
+}
+
+.hero__intro {
+  margin: 18px 0 12px;
+  font-size: 1.03rem;
+}
+
+.hero__instructions {
+  margin: 0;
+  padding-left: 16px;
+  border-left: 3px solid rgba(200, 93, 45, 0.38);
+  color: var(--muted);
+}
+
+.hero__guide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 24px 26px;
+  background:
+    linear-gradient(145deg, rgba(39, 53, 75, 0.94), rgba(30, 42, 59, 0.94)),
+    var(--panel-strong);
+  color: #f6efe3;
+}
+
+.guide__label {
+  color: rgba(255, 243, 225, 0.72);
+}
+
+.guide__text {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.about-strip {
+  margin-top: 18px;
+  padding: 16px 22px;
+}
+
+.about-strip p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.control-panel {
+  margin-top: 18px;
+  padding: 20px 22px;
+}
+
+.control-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 22px;
+  align-items: flex-end;
+}
+
+.control-panel__row + .control-panel__row {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(185, 173, 153, 0.28);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-group--season {
+  flex: 1 1 340px;
+}
+
+.control-group--metric {
+  flex: 2 1 440px;
+}
+
+.control-group--select {
+  min-width: 250px;
+}
+
+.control-group--switch,
+.control-group--reset {
+  min-width: 140px;
+}
+
+.season-control {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.control-button,
+.metric-toggle button,
+.team-select {
+  min-height: 42px;
+  border-radius: 999px;
+  font: inherit;
+}
+
+.control-button {
+  border: 0;
+  padding: 0 18px;
+  background: var(--league);
+  color: #fff8f0;
+  cursor: pointer;
+  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
+}
+
+.control-button:hover,
+.metric-toggle button:hover,
+.team-select:hover {
+  transform: translateY(-1px);
+}
+
+.control-button:focus-visible,
+.metric-toggle button:focus-visible,
+.team-select:focus-visible,
+.season-slider:focus-visible,
+.switch input:focus-visible + .switch__track {
+  outline: 3px solid rgba(22, 112, 107, 0.28);
+  outline-offset: 2px;
+}
+
+.control-button--ghost {
+  background: rgba(39, 53, 75, 0.08);
+  color: var(--league);
+}
+
+.season-slider {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.season-label {
+  min-width: 84px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.metric-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.metric-toggle button,
+.team-select {
+  border: 1px solid rgba(185, 173, 153, 0.6);
+  background: var(--panel-strong);
+  color: var(--ink);
+  padding: 0 16px;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.metric-toggle button.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff7ef;
+}
+
+.team-select {
+  min-width: 230px;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  width: 64px;
+  height: 40px;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch__track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(39, 53, 75, 0.16);
+  transition: background 180ms ease;
+}
+
+.switch__track::after {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(29, 36, 49, 0.14);
+  transition: transform 180ms ease;
+  content: "";
+}
+
+.switch input:checked + .switch__track {
+  background: rgba(22, 112, 107, 0.85);
+}
+
+.switch input:checked + .switch__track::after {
+  transform: translateX(24px);
+}
+
+.dashboard {
+  margin-top: 22px;
+}
+
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.92fr);
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.card {
+  padding: 22px 22px 18px;
+}
+
+.card__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 18px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  margin: 6px 0 0;
+  font-family: "Source Serif 4", serif;
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.card__summary {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--muted);
+}
+
+.chart {
+  position: relative;
+  min-height: 320px;
+}
+
+.chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.chart-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.annotation-note {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(138, 106, 43, 0.09);
+  color: #5a4a28;
+  font-size: 0.95rem;
+}
+
+.annotation-note strong {
+  display: block;
+  margin-bottom: 3px;
+  color: #4d3f21;
+}
+
+.site-footer {
+  margin-top: 22px;
+  padding: 18px 22px 20px;
+}
+
+.site-footer p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.site-footer p + p {
+  margin-top: 10px;
+}
+
+.site-footer__fineprint {
+  font-size: 0.92rem;
+}
+
+.tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  width: min(280px, calc(100vw - 20px));
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: var(--radius-md);
+  background: rgba(24, 30, 40, 0.95);
+  box-shadow: 0 18px 36px rgba(24, 30, 40, 0.3);
+  color: #f5f0e7;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 120ms ease;
+}
+
+.tooltip.is-visible {
+  opacity: 1;
+}
+
+.tooltip__eyebrow {
+  color: rgba(245, 240, 231, 0.72);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tooltip__title {
+  margin: 4px 0 10px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.tooltip__grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  font-size: 0.93rem;
+}
+
+.tooltip__grid span {
+  color: rgba(245, 240, 231, 0.72);
+}
+
+.tooltip__note {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(245, 240, 231, 0.12);
+  color: #f6c8a7;
+  font-size: 0.9rem;
+}
+
+.axis text,
+.axis-title,
+.grid text,
+.detail-empty,
+.detail-empty tspan {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.axis text {
+  fill: var(--muted);
+  font-size: 0.82rem;
+}
+
+.axis path,
+.axis line {
+  stroke: var(--line-strong);
+}
+
+.grid line {
+  stroke: rgba(185, 173, 153, 0.34);
+  stroke-dasharray: 4 5;
+}
+
+.grid path {
+  stroke: none;
+}
+
+.axis-title {
+  fill: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.timeline-line {
+  fill: none;
+  stroke: var(--league);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.timeline-line--team {
+  stroke: var(--accent);
+  opacity: 0.95;
+}
+
+.timeline-line--team.is-preview {
+  stroke: var(--highlight);
+  stroke-dasharray: 8 6;
+}
+
+.timeline-selected-line {
+  stroke: rgba(200, 93, 45, 0.25);
+  stroke-width: 1.4;
+  stroke-dasharray: 4 5;
+}
+
+.timeline-selected-dot {
+  fill: var(--accent);
+  stroke: #fff8ef;
+  stroke-width: 2.8;
+}
+
+.timeline-selected-dot--team {
+  fill: var(--highlight);
+}
+
+.timeline-hit-area {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.timeline-annotation__stem {
+  stroke: rgba(138, 106, 43, 0.45);
+  stroke-width: 1.4;
+}
+
+.timeline-annotation__dot {
+  fill: var(--annotation);
+  stroke: #fff7ef;
+  stroke-width: 1.5;
+}
+
+.timeline-annotation__pill {
+  fill: rgba(138, 106, 43, 0.1);
+  stroke: rgba(138, 106, 43, 0.16);
+}
+
+.timeline-annotation__label {
+  fill: #5a4a28;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.avg-line {
+  stroke: rgba(39, 53, 75, 0.28);
+  stroke-dasharray: 5 6;
+}
+
+.avg-label {
+  fill: var(--muted);
+  font-size: 0.75rem;
+}
+
+.scatter-point {
+  fill: rgba(39, 53, 75, 0.42);
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.2;
+  cursor: pointer;
+}
+
+.scatter-point.is-hovered {
+  fill: var(--highlight);
+  stroke: #f6f1e7;
+  stroke-width: 2;
+}
+
+.scatter-point.is-selected {
+  fill: var(--accent);
+  stroke: #fff7ef;
+  stroke-width: 2.4;
+}
+
+.scatter-point.is-dimmed {
+  opacity: 0.24;
+}
+
+.scatter-label {
+  fill: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(255, 251, 244, 0.94);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.detail-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.detail-line--league {
+  stroke: var(--league);
+  opacity: 0.82;
+}
+
+.detail-line--team {
+  stroke: var(--accent);
+}
+
+.detail-point {
+  stroke: #fff8ef;
+  stroke-width: 2;
+}
+
+.detail-point--league {
+  fill: var(--league);
+}
+
+.detail-point--team {
+  fill: var(--accent);
+}
+
+.detail-end-label {
+  fill: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.detail-empty {
+  fill: var(--muted);
+  font-size: 1rem;
+}
+
+.detail-empty tspan:first-child {
+  fill: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .hero,
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__guide {
+    order: -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    width: min(100vw - 18px, 100%);
+    padding-top: 18px;
+    padding-bottom: 28px;
+  }
+
+  .hero__copy,
+  .hero__guide,
+  .control-panel,
+  .card,
+  .site-footer,
+  .about-strip {
+    border-radius: 22px;
+  }
+
+  .hero__copy,
+  .hero__guide,
+  .control-panel,
+  .card,
+  .site-footer {
+    padding-inline: 18px;
+  }
+
+  .season-control {
+    grid-template-columns: 1fr;
+  }
+
+  .season-label {
+    text-align: left;
+  }
+
+  .metric-toggle {
+    gap: 8px;
+  }
+
+  .metric-toggle button {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
